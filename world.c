@@ -16,7 +16,7 @@ typedef struct world {
 	double valley_height_p;
 	double valley_size_p;
 	
-	int elev_delta;
+	double elev_delta;
 	int smooth_order;
 	
 	double elevations[800];
@@ -135,13 +135,18 @@ void generate_world(world* w) {
 		
 		for (i=0; i<w->resolution; i++) {
 			if (i%order == 0) {
-				double v = w->elev_delta*influence;
+				double v = w->elev_delta;
 				double next_delta = ((rand()%(int)v)-(v*w->below_sealevel_p))- e_delta;
+				next_delta *= influence;
 				step = (next_delta)/order;
 			}
 			w->elevations[i] += e_delta;
 			e_delta += step;
 		}
+	}
+	
+	for (i=0; i<w->resolution; i++) {
+		w->elevations[i] -= w->elev_delta*0.8;
 	}
 }
 	

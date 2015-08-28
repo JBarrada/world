@@ -24,15 +24,14 @@ void rotate(int cx, int cy, double radians) {
 }
 
 void draw() {
-	circle_filled(320, 240, SEALEVEL, 0x03);
+	circle_filled(320, -240, SEALEVEL * 2, 0x03);
 	poly_filled(points, NUM_POINTS, 0xff);
-	circle_filled(320, 240, SEALEVEL*0.9, 0x00);
 }
 
 void idle() {
-	rotate(320, 240, 0.0001);
+	rotate(320, -240, 0.002);
 	render();
-	usleep(1000000/60.0);
+	usleep(1000000/30.0);
 }
 
 void refresh() {
@@ -60,10 +59,10 @@ void refresh() {
 	generate_world(&w);
 	
 	int i;
-	double x, y, radius, step=(2*M_PI)/NUM_POINTS, cx=320, cy=240;
+	double x, y, radius, step=(2*M_PI)/NUM_POINTS, cx=320, cy=-240;
 
 	for (i=0; i<NUM_POINTS; i++) {
-		radius = w.elevations[i];
+		radius = w.elevations[i] * 2;
 		x = radius * cos(step*i);
 		y = radius * sin(step*i);
 		points[i] = (point) {x+cx, y+cy};

@@ -171,9 +171,50 @@ void draw_world_circular(world* w, int cx, int cy, double scale, double longitud
 	poly_filled(points, w->resolution, 0xff);
 }
 
+
+void world_time(double sun_longitude, double view_longitude, double circumference, double scale) {
+	while (view_longitude >= 2*M_PI)
+		view_longitude -= 2*M_PI;
+	while (view_longitude < 0)
+		view_longitude += 2*M_PI;
+	
+	double sun_x = ((sun_longitude/(2*M_PI)) * circumference);
+	double moon_x = (((sun_longitude+M_PI)/(2*M_PI)) * circumference);
+	double cur_x = ((view_longitude/(2*M_PI)) * circumference);
+	
+	double sunoffset = sun_x - cur_x;
+	if (sunoffset < (-circumference-sunoffset))
+		sunoffset += circumference;
+	
+	double moonoffset = moon_x - cur_x;
+	if (moonoffset < (-circumference-moonoffset))
+		moonoffset += circumference;
+	
+	circle_filled(sunoffset*scale + 320, 480, 50, get_byte_color(0xFFCC66));
+	circle_filled(moonoffset*scale + 320, 480, 60, get_byte_color(0x666699));
+}
+
+
+void day() {
+	v_gradient(0,700, 0x99CCFF, 0);
+}
+void sunset() {
+	v_gradient(0,300, 0xFF5050, 0x3333CC);
+	v_gradient(300,500, 0x3333CC, 0);
+}
+void sunrise() {
+	v_gradient(0,300, 0xCC33FF, 0x3333CC);
+	v_gradient(300,600, 0x3333CC, 0);
+}
+void night() {
+	v_gradient(0,480, 0x39008F, 0);
+}
+
 void draw_world_flat(world* w, int window_w, double scale, double longitude) {
 	while (longitude >= 2*M_PI)
 		longitude -= 2*M_PI;
+	while (longitude < 0)
+		longitude += 2*M_PI;
 	
 	double circumference = ((2*M_PI)*w->sealevel);
 	double step = circumference/w->resolution;
@@ -216,45 +257,9 @@ void draw_world_flat(world* w, int window_w, double scale, double longitude) {
 		//getch();
 	}
 	//getch();
-	
-	
 	points[p+1] = (point) {start_offset, cy};
 	points[p] = (point) {start_offset+num_points*step*scale, cy};
 	
-	point sealevel[4];
-	sealevel[0] = (point) {0, cy};
-	sealevel[1] = (point) {0, cy+w->sealevel*scale};
-	sealevel[2] = (point) {0+window_w, cy+w->sealevel*scale};
-	sealevel[3] = (point) {0+window_w, cy};
-	
-	poly_filled(sealevel, 4, 0x03);
+	rectangle_filled(0, 0, window_w, cy+w->sealevel*scale, 0x03);
 	poly_filled(points, num_points + 2, 0xff);
-	
-	
-	
-	// int i;
-	// double cx, cy, x, y, x_, y_, elevation, circumference=((2*M_PI)*w->sealevel), step=circumference/w->resolution;
-	
-	// cx = -(longitude/(2*M_PI)) * (circumference*scale) + window_w/2;
-	// cy = -500;
-	
-	// for (i=0; i<w->resolution; i++) {
-		// elevation = w->elevations[i] * scale;
-		// x = i * step * scale;
-		// y = elevation;
-		
-		// points[i] = (point) {x+cx, y+cy};
-	// }		
-	// points[i+1] = (point) {cx, cy};
-	// points[i] = (point) {cx+circumference*scale, cy};
-
-	// point sealevel[4];
-	// sealevel[0] = (point) {cx, cy};
-	// sealevel[1] = (point) {cx, cy+w->sealevel*scale};
-	// sealevel[2] = (point) {cx+circumference*scale, cy+w->sealevel*scale};
-	// sealevel[3] = (point) {cx+circumference*scale, cy};
-	
-	// poly_filled(sealevel, 4, 0x03);
-	// poly_filled(points, w->resolution + 2, 0xff);
-	
 }

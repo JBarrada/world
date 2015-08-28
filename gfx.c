@@ -6,6 +6,15 @@ unsigned char screen_buffer[WIDTH_W*HEIGHT_W];
 
 void (*draw_function)();
 
+unsigned char get_byte_color(int hexcolor) {
+	int red = ((hexcolor >> 16) & 0xff) / 32;
+	int green = ((hexcolor >> 8) & 0xff) / 32;
+	int blue = (hexcolor & 0xff) / 64;
+
+	return (red << 5) | (green << 2) | blue;
+}
+
+
 void set_pixel(int x, int y, unsigned char c) {
 	if (x<WIDTH_W & y<HEIGHT_W & x>=0 & y>=0) {
 		screen_buffer[y*WIDTH_W+x] = c;
@@ -150,6 +159,39 @@ void poly_filled(point points[], int num_points, unsigned char c) {
 					set_pixel(p_x, p_y, c);
 			}
 		}
+	}
+}
+
+void rectangle_filled(int x, int y, int width, int height, unsigned char c) {
+	point rect[4];
+	rect[0] = (point) {x, y};
+	rect[1] = (point) {x+width, y};
+	rect[2] = (point) {x+width, y+height};
+	rect[3] = (point) {x, y+height};
+	poly_filled(rect, 4, c);
+}
+
+void v_gradient(y1, y2, c1, c2) {
+	int steps = y2-y1;
+	double r1, r2, g1, g2, b1, b2, rd, gd, bd;
+	r1 = ((c1 >> 16) & 0xff);
+	g1 = ((c1 >> 8) & 0xff);
+	b1 = (c1 & 0xff);
+	
+	r2 = ((c2 >> 16) & 0xff);
+	g2 = ((c2 >> 8) & 0xff);
+	b2 = (c2 & 0xff);
+	
+	rd = (r2-r1)/steps;
+	gd = (g2-g1)/steps;
+	bd = (b2-b1)/steps;
+	
+	int y;
+	for (y=y1; y<y2; y++) {
+		line(0, y, WIDTH_W, y, get_byte_color(((int)r1<<16) | ((int)g1<<8) | (int)b1));
+		r1 += rd;
+		g1 += gd;
+		b1 += bd;
 	}
 }
 

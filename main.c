@@ -8,34 +8,26 @@
 
 #define NUM_POINTS 800
 #define SEALEVEL 200
-point points[NUM_POINTS];
 
-void rotate(int cx, int cy, double radians) {
-	int i;
-	double x, y, x_, y_;
-	for (i=0; i<NUM_POINTS; i++) {
-		x = points[i].x - cx;
-		y = points[i].y - cy;
-		x_ = x*cos(radians) - y*sin(radians);
-		y_ = y*cos(radians) + x*sin(radians);
-		
-		points[i] = (point) {cx+x_, cy+y_};
-	}
-}
+world w;
+
+double longitude = 0;
 
 void draw() {
-	circle_filled(320, -240, SEALEVEL * 2, 0x03);
-	poly_filled(points, NUM_POINTS, 0xff);
+	draw_world_circular(&w, 120, 360, 0.5, longitude);
+	draw_world_flat(&w, 640, 3, longitude);
+	
+	line(320, 0, 320, 480, 0xe0);
+	line(120, 360, 120, 480, 0xe0);
 }
 
 void idle() {
-	rotate(320, -240, 0.002);
+	longitude += 0.0001;
 	render();
 	usleep(1000000/30.0);
 }
 
 void refresh() {
-	world w;
 	w.resolution = NUM_POINTS;
 	
 	w.sealevel = SEALEVEL;
@@ -45,7 +37,7 @@ void refresh() {
 	w.ocean_size_p = 0.3;
 	w.ocean_depth_p = 0.8;
 	
-	w.num_peaks =  3;
+	w.num_peaks = 3;
 	w.peak_height_p = 4.5; 
 	w.peak_size_p =  0.1;
 	
@@ -58,15 +50,7 @@ void refresh() {
 	
 	generate_world(&w);
 	
-	int i;
-	double x, y, radius, step=(2*M_PI)/NUM_POINTS, cx=320, cy=-240;
-
-	for (i=0; i<NUM_POINTS; i++) {
-		radius = w.elevations[i] * 2;
-		x = radius * cos(step*i);
-		y = radius * sin(step*i);
-		points[i] = (point) {x+cx, y+cy};
-	}
+	//longitude = 0;
 }
 
 void keyboard(unsigned char key, int x, int y) {

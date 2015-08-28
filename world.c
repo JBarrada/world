@@ -149,4 +149,112 @@ void generate_world(world* w) {
 		w->elevations[i] -= w->elev_delta*0.8;
 	}
 }
+
+void draw_world_circular(world* w, int cx, int cy, double scale, double longitude) {
+	longitude += M_PI/2.0;
+	point points[w->resolution];
+	int i;
+	double x, y, x_, y_, radius, step=(2*M_PI)/w->resolution;
+
+	for (i=0; i<w->resolution; i++) {
+		radius = w->elevations[w->resolution-i-1] * scale;
+		x = radius * cos(step*i);
+		y = radius * sin(step*i);
+		
+		x_ = x*cos(longitude) - y*sin(longitude);
+		y_ = y*cos(longitude) + x*sin(longitude);
+		
+		points[i] = (point) {x_+cx, y_+cy};
+	}
 	
+	circle_filled(cx, cy, w->sealevel * scale, 0x03);
+	poly_filled(points, w->resolution, 0xff);
+}
+
+void draw_world_flat(world* w, int window_w, double scale, double longitude) {
+	while (longitude >= 2*M_PI)
+		longitude -= 2*M_PI;
+	
+	double circumference = ((2*M_PI)*w->sealevel);
+	double step = circumference/w->resolution;
+	double points_in_view = window_w/(step*scale) + 4.0;
+	
+	double c_index = (longitude/(2*M_PI)) * w->resolution;
+	
+	int start_point = floor(c_index - (points_in_view/2.0));
+	int num_points = ceil(points_in_view);
+	
+	double start_offset = (window_w/2.0) - scale*step*(c_index-start_point);
+	
+	point points[num_points + 2];
+	
+	double x, y, elevation, cy = -500;
+	
+	
+	//printf("CI: %f  PIV: %f  SP: %d  SO: %f\n", c_index, points_in_view, start_point, start_offset);
+	
+	
+	int i, i_, p=0;
+	for (i=start_point; i<(start_point+num_points); i++) {
+		i_ = i;
+		if (i < 0)
+			i_ = i + w->resolution;
+		if (i >= w->resolution)
+			i_ = i - w->resolution;
+		
+		//printf("I: %d  I_: %d  res: %d\n",i, i_, w->resolution);
+		
+		elevation = w->elevations[i_] * scale;
+		x = p * step * scale;
+		y = elevation;
+		
+		//printf("I_: %d  ELEV: %f  X: %f  Y: %f  P: %d\n", i_, elevation, x, y, p);
+		
+		points[p] = (point) {x+start_offset, y+cy};
+		p++;
+		
+		//getch();
+	}
+	//getch();
+	
+	
+	points[p+1] = (point) {start_offset, cy};
+	points[p] = (point) {start_offset+num_points*step*scale, cy};
+	
+	point sealevel[4];
+	sealevel[0] = (point) {0, cy};
+	sealevel[1] = (point) {0, cy+w->sealevel*scale};
+	sealevel[2] = (point) {0+window_w, cy+w->sealevel*scale};
+	sealevel[3] = (point) {0+window_w, cy};
+	
+	poly_filled(sealevel, 4, 0x03);
+	poly_filled(points, num_points + 2, 0xff);
+	
+	
+	
+	// int i;
+	// double cx, cy, x, y, x_, y_, elevation, circumference=((2*M_PI)*w->sealevel), step=circumference/w->resolution;
+	
+	// cx = -(longitude/(2*M_PI)) * (circumference*scale) + window_w/2;
+	// cy = -500;
+	
+	// for (i=0; i<w->resolution; i++) {
+		// elevation = w->elevations[i] * scale;
+		// x = i * step * scale;
+		// y = elevation;
+		
+		// points[i] = (point) {x+cx, y+cy};
+	// }		
+	// points[i+1] = (point) {cx, cy};
+	// points[i] = (point) {cx+circumference*scale, cy};
+
+	// point sealevel[4];
+	// sealevel[0] = (point) {cx, cy};
+	// sealevel[1] = (point) {cx, cy+w->sealevel*scale};
+	// sealevel[2] = (point) {cx+circumference*scale, cy+w->sealevel*scale};
+	// sealevel[3] = (point) {cx+circumference*scale, cy};
+	
+	// poly_filled(sealevel, 4, 0x03);
+	// poly_filled(points, w->resolution + 2, 0xff);
+	
+}
